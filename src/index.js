@@ -15,23 +15,22 @@ const {
     AutoCursorModes,
     AxisScrollStrategies,
     AxisTickStrategies,
-    DataPatterns,
     ColorRGBA,
     ColorHSV,
+    UIElementBuilders,
     Themes,
 } = lcjs
 
 const DATA_FREQUENCY_HZ = 1000
 const CHANNELS_AMOUNT = 10
-const xIntervalMax = 15 * DATA_FREQUENCY_HZ
+const xIntervalMax = 30 * DATA_FREQUENCY_HZ
 const channelIntervalY = 2 // [-1, 1]
 
 const chart = lightningChart()
     .ChartXY({
-        // Theme: Themes.dark,
+    // theme: Themes.dark
     })
     .setTitle(`Multi-channel real-time monitoring (${CHANNELS_AMOUNT} chs, ${DATA_FREQUENCY_HZ} Hz)`)
-    .setAutoCursorMode(AutoCursorModes.disabled)
 const axisX = chart
     .getDefaultAxisX()
     .disableAnimations()
@@ -46,37 +45,53 @@ const axisY = chart.getDefaultAxisY()
     .setInterval(-channelIntervalY / 2, CHANNELS_AMOUNT * channelIntervalY)
 
 const series = new Array(CHANNELS_AMOUNT).fill(0).map((_, iChannel) => {
-    const nSeries = chart
-        .addLineSeries({
-            dataPattern: DataPatterns.horizontalProgressive,
+    // Create line series optimized for regular progressive X data.
+    const nSeries = chart.addLineSeries({
+            dataPattern: {
+                // pattern: 'ProgressiveX' => Each consecutive data point has increased X coordinate.
+                pattern: 'ProgressiveX',
+                // regularProgressiveStep: true => The X step between each consecutive data point is regular (for example, always `1.0`).
+                regularProgressiveStep: true,
+            }
         })
+        .setName(`Channel ${iChannel + 1}`)
         .setStrokeStyle(new SolidLine({
             thickness: 1,
             fillStyle: new SolidFill({color: ColorHSV( iChannel * 60 )})
         }))
         .setMouseInteractions(false)
+        // Enable automatic data cleaning.
         .setMaxPointCount(xIntervalMax)
+
+    // Add custom tick for each channel.
+    chart
+        .getDefaultAxisY()
+        .addCustomTick(UIElementBuilders.AxisTick)
+        .setValue(( CHANNELS_AMOUNT - (1 + iChannel) ) * channelIntervalY)
+        .setTextFormatter(() => `Channel ${iChannel + 1}`)
+        .setGridStrokeStyle(
+            new SolidLine({
+                thickness: 1,
+                fillStyle: new SolidFill({ color: ColorRGBA(255, 255, 255, 60) }),
+            }),
+        )
 
     return nSeries
 })
 
-const dcThresholdBand = axisX.addConstantLine().setStrokeStyle(
-    new SolidLine({
-        thickness: 10,
-        fillStyle: new SolidFill({ color: ColorRGBA(255,0,0,50) }),
-    }),
-)
+// Add LegendBox.
+chart.addLegendBox().add(chart)
 
 // Define unique signals that will be used for channels.
 const signals = [
-    { length: 1000 * 2 * Math.PI, func: (x) => Math.sin(x / 1000) },
-    { length: 1000 * 2 * Math.PI, func: (x) => Math.cos(x / 1000) },
-    { length: 2000 * 2 * Math.PI, func: (x) => Math.cos(x / 2000) + Math.sin(x / 1000) },
-    { length: 2000 * 2 * Math.PI, func: (x) => Math.sin(x / 500) + Math.cos(x / 2000) },
-    { length: 2000 * 2 * Math.PI, func: (x) => Math.sin(x / 1000) * Math.cos(x / 2000) },
-    { length: 4500 * 2 * Math.PI, func: (x) => Math.cos(x / 4500) },
-    { length: 8000 * 2 * Math.PI, func: (x) => Math.sin(x / 8000) },
-    { length: 6500 * 2 * Math.PI, func: (x) => Math.sin(x / 2000) * Math.cos(x / 6500) },
+    { length: 100 * 2 * Math.PI, func: (x) => Math.sin(x / 100) },
+    { length: 100 * 2 * Math.PI, func: (x) => Math.cos(x / 100) },
+    { length: 200 * 2 * Math.PI, func: (x) => Math.cos(x / 200) + Math.sin(x / 100) },
+    { length: 200 * 2 * Math.PI, func: (x) => Math.sin(x / 50) + Math.cos(x / 200) },
+    { length: 200 * 2 * Math.PI, func: (x) => Math.sin(x / 100) * Math.cos(x / 200) },
+    { length: 450 * 2 * Math.PI, func: (x) => Math.cos(x / 450) },
+    { length: 800 * 2 * Math.PI, func: (x) => Math.sin(x / 800) },
+    { length: 650 * 2 * Math.PI, func: (x) => Math.sin(x / 200) * Math.cos(x / 650) },
 ]
 
 // Generate data sets for each signal.
@@ -110,7 +125,7 @@ Promise.all(
                 const x = xPos + iDp
                 const iData = x % (nDataset.length - 1)
                 const ySignal = nDataset[iData]
-                const y = iChannel * channelIntervalY + ySignal
+                const y = ((CHANNELS_AMOUNT - 1) - iChannel) * channelIntervalY + ySignal
                 const point = { x, y }
                 newDataPoints.push(point)
             }
@@ -129,13 +144,13 @@ Promise.all(
 
 
 // Measure FPS.
-let tStart = Date.now()
+let tStart = window.performance.now()
 let frames = 0
 let fps = 0
 const title = chart.getTitle()
 const recordFrame = () => {
     frames++
-    const tNow = Date.now()
+    const tNow = window.performance.now()
     fps = 1000 / ((tNow - tStart) / frames)
     sub_recordFrame = requestAnimationFrame(recordFrame)
 
@@ -143,6 +158,6 @@ const recordFrame = () => {
 }
 let sub_recordFrame = requestAnimationFrame(recordFrame)
 setInterval(() => {
-    tStart = Date.now()
+    tStart = window.performance.now()
     frames = 0
 }, 5000)

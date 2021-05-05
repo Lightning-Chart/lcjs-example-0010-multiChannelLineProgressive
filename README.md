@@ -27,11 +27,25 @@ Widely used in all kinds of fields for monitoring live data from many (hundreds 
 
 Frames rendered per second (*FPS*) is recorded live, and displayed on the Chart title. FPS of 40-60 indicates a smooth running performance.
 
+## Automatic data cleaning
+
+In infinitely scrolling applications, cleaning old out of view data is extremely crucial;
+in this example `LineSeries.setMaxPointsCount` method is used to enable automatic data cleaning.
+For reference, see also `LineSeries.setDataCleaningThreshold`.
+
+The `setMaxPointsCount` method sets the *amount of data points*, that will always be retained in the *series head* (latest data).
+The full conditions for valid *data cleaning* are:
+1. There is a considerably large chunk of data out of view (visible data is not cleaned!).
+2. If the chunk is removed, the amount of data that remains is still more than *max points count*.
+
+In practice, this results in an application where you can even scroll back for some distance and see older data, but if you scroll far enough, you will find that the old data has been *cleaned*. This allows the application to run *forever*!
+
 
 ## API Links
 
 * [XY cartesian chart]
 * [Line series]
+* [Data patterns]
 * [Axis]
 
 
@@ -56,7 +70,8 @@ Direct developer email support can be purchased through a [Support Plan][4] or b
 © Arction Ltd 2009-2020. All rights reserved.
 
 
-[XY cartesian chart]: https://www.arction.com/lightningchart-js-api-documentation/v2.2.0/classes/chartxy.html
-[Line series]: https://www.arction.com/lightningchart-js-api-documentation/v2.2.0/classes/lineseries.html
-[Axis]: https://www.arction.com/lightningchart-js-api-documentation/v2.2.0/classes/axis.html
+[XY cartesian chart]: https://www.arction.com/lightningchart-js-api-documentation/v3.0.0/classes/chartxy.html
+[Line series]: https://www.arction.com/lightningchart-js-api-documentation/v3.0.0/classes/lineseries.html
+[Data patterns]: https://www.arction.com/lightningchart-js-api-documentation/v3.0.0/interfaces/datapattern.html
+[Axis]: https://www.arction.com/lightningchart-js-api-documentation/v3.0.0/classes/axis.html
 
