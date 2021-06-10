@@ -1,6 +1,6 @@
-# Multi-channel real-time data monitoring Line Chart
+# Multi-channel real-time data monitoring JavaScript Chart
 
-![Multi-channel real-time data monitoring Line Chart](multiChannelLineProgressive.png)
+![Multi-channel real-time data monitoring JavaScript Chart](multiChannelLineProgressive.png)
 
 This demo application belongs to the set of examples for LightningChart JS, data visualization library for JavaScript.
 
