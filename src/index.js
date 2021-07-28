@@ -12,11 +12,9 @@ const {
     lightningChart,
     SolidFill,
     SolidLine,
-    AutoCursorModes,
     AxisScrollStrategies,
     AxisTickStrategies,
     ColorRGBA,
-    ColorHSV,
     UIElementBuilders,
     Themes,
 } = lcjs
@@ -28,7 +26,7 @@ const channelIntervalY = 2 // [-1, 1]
 
 const chart = lightningChart()
     .ChartXY({
-    // theme: Themes.dark
+    // theme: Themes.darkGold
     })
     .setTitle(`Multi-channel real-time monitoring (${CHANNELS_AMOUNT} chs, ${DATA_FREQUENCY_HZ} Hz)`)
 const axisX = chart
@@ -55,10 +53,8 @@ const series = new Array(CHANNELS_AMOUNT).fill(0).map((_, iChannel) => {
             }
         })
         .setName(`Channel ${iChannel + 1}`)
-        .setStrokeStyle(new SolidLine({
-            thickness: 1,
-            fillStyle: new SolidFill({color: ColorHSV( iChannel * 60 )})
-        }))
+        // Default color, but thickness = 1
+        .setStrokeStyle(style => style.setThickness(1))
         .setMouseInteractions(false)
         // Enable automatic data cleaning.
         .setMaxPointCount(xIntervalMax)
@@ -81,6 +77,11 @@ const series = new Array(CHANNELS_AMOUNT).fill(0).map((_, iChannel) => {
 
 // Add LegendBox.
 chart.addLegendBox().add(chart)
+    // Dispose example UI elements automatically if they take too much space. This is to avoid bad UI on mobile / etc. devices.
+    .setAutoDispose({
+        type: 'max-width',
+        maxWidth: 0.30,
+    })
 
 // Define unique signals that will be used for channels.
 const signals = [
