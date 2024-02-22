@@ -12,7 +12,7 @@ const xydata = require('@arction/xydata')
 const { createProgressiveFunctionGenerator } = xydata
 
 // Extract required parts from LightningChartJS.
-const { lightningChart, SolidFill, SolidLine, AxisScrollStrategies, AxisTickStrategies, ColorRGBA, UIElementBuilders, Themes } = lcjs
+const { lightningChart, SolidFill, SolidLine, AxisScrollStrategies, AxisTickStrategies, ColorRGBA, emptyFill, Themes } = lcjs
 
 const DATA_FREQUENCY_HZ = 1000
 const CHANNELS_AMOUNT = 10
@@ -27,7 +27,7 @@ const chart = lightningChart()
 const axisX = chart
     .getDefaultAxisX()
     .setScrollStrategy(AxisScrollStrategies.progressive)
-    .setInterval({ start: -xIntervalMax, end: 0, stopAxisAfter: false })
+    .setDefaultInterval((state) => ({ end: state.dataMax, start: (state.dataMax ?? 0) - xIntervalMax, stopAxisAfter: false }))
     .setTitle('Data points per channel')
 const axisY = chart
     .getDefaultAxisY()
@@ -39,20 +39,15 @@ const axisY = chart
 const series = new Array(CHANNELS_AMOUNT).fill(0).map((_, iChannel) => {
     // Create line series optimized for regular progressive X data.
     const nSeries = chart
-        .addLineSeries({
-            dataPattern: {
-                // pattern: 'ProgressiveX' => Each consecutive data point has increased X coordinate.
-                pattern: 'ProgressiveX',
-                // regularProgressiveStep: true => The X step between each consecutive data point is regular (for example, always `1.0`).
-                regularProgressiveStep: true,
-            },
+        .addPointLineAreaSeries({
+            dataPattern: 'ProgressiveX',
         })
         .setName(`Channel ${iChannel + 1}`)
+        .setAreaFillStyle(emptyFill)
         // Use -1 thickness for best performance, especially on low end devices like mobile / laptops.
         .setStrokeStyle((style) => style.setThickness(-1))
         .setMouseInteractions(false)
-        // Enable automatic data cleaning.
-        .setDataCleaning({ minDataPointCount: xIntervalMax })
+        .setMaxSampleCount(xIntervalMax)
 
     // Add custom tick for each channel.
     chart
@@ -141,7 +136,7 @@ Promise.all(
             }
             seriesNewDataPoints[iChannel] = newDataPoints
         }
-        series.forEach((series, iChannel) => series.add(seriesNewDataPoints[iChannel]))
+        series.forEach((series, iChannel) => series.appendJSON(seriesNewDataPoints[iChannel]))
         pushedDataCount += newDataPointsCount
         requestAnimationFrame(streamData)
     }
