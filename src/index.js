@@ -19,7 +19,9 @@ const CHANNELS_AMOUNT = 10
 const xIntervalMax = 30 * DATA_FREQUENCY_HZ
 const channelIntervalY = 2 // [-1, 1]
 
-const chart = lightningChart()
+const chart = lightningChart({
+            resourcesBaseUrl: new URL(document.head.baseURI).origin + new URL(document.head.baseURI).pathname + 'resources/',
+        })
     .ChartXY({
         theme: Themes[new URLSearchParams(window.location.search).get('theme') || 'darkGold'] || undefined,
     })
