@@ -48,7 +48,6 @@ const series = new Array(CHANNELS_AMOUNT).fill(0).map((_, iChannel) => {
         .setAreaFillStyle(emptyFill)
         // Use -1 thickness for best performance, especially on low end devices like mobile / laptops.
         .setStrokeStyle((style) => style.setThickness(-1))
-        .setMouseInteractions(false)
         .setMaxSampleCount(xIntervalMax)
 
     // Add custom tick for each channel.
