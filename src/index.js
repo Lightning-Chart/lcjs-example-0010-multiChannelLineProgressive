@@ -13,7 +13,7 @@ const xydata = require('@lightningchart/xydata')
 const { createProgressiveFunctionGenerator } = xydata
 
 // Extract required parts from LightningChartJS.
-const { lightningChart, SolidFill, SolidLine, AxisScrollStrategies, AxisTickStrategies, ColorRGBA, emptyFill, DataSetXY, Themes } = lcjs
+const { lightningChart, SolidFill, SolidLine, AxisScrollStrategies, AxisTickStrategies, ColorRGBA, emptyFill, DataSet, Themes } = lcjs
 
 const DATA_FREQUENCY_HZ = 1000
 const CHANNELS_AMOUNT = 10
@@ -43,7 +43,7 @@ const axisY = chart
     .setScrollStrategy(AxisScrollStrategies.expansion)
     .setInterval({ start: -channelIntervalY / 2, end: CHANNELS_AMOUNT * channelIntervalY, stopAxisAfter: false })
 
-const dataSet = new DataSetXY({
+const dataSet = new DataSet({
     schema: {
         x: { pattern: 'progressive' },
         ...Object.fromEntries(Array.from({ length: CHANNELS_AMOUNT }, (_, i) => [`y${i}`, { pattern: null }])),
